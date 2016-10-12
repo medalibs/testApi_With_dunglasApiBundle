@@ -1,0 +1,54 @@
+# Learn more about services, parameters and containers at
+# http://symfony.com/doc/current/book/service_container.html
+parameters:
+#    parameter_name: value
+
+services:
+#    service_name:
+#        class: AppBundle\Directory\ClassName
+#        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]
+    resource.user:
+        parent:    api.resource
+        arguments: [ AppBundle\Entity\User ]
+        calls:
+            -      method:    "initItemOperations"
+                   arguments: [ [ '@resource.user.item_operation.custom_verif','@resource.user.item_operation.get','@resource.user.item_operation.put' ] ]
+            
+        tags:      [ { name: api.resource } ]
+
+    resource.user.item_operation.get:
+        class:     "Dunglas\ApiBundle\Api\Operation\Operation"
+        public:    false
+        factory:   [ "@api.operation_factory", "createItemOperation" ]
+        arguments: [ "@resource.user", "GET" ]
+
+    resource.user.item_operation.put:
+        class:     "Dunglas\ApiBundle\Api\Operation\Operation"
+        public:    false
+        factory:   [ "@api.operation_factory", "createItemOperation" ]
+        arguments: [ "@resource.user", "PUT" ]
+        
+    resource.group:
+        parent:    api.resource
+        arguments: [ AppBundle\Entity\Groupe ]
+        tags:      [ { name: api.resource } ]
+        
+
+
+    resource.user.item_operation.custom_verif:
+        class:   "Dunglas\ApiBundle\Api\Operation\Operation"
+        public:  false
+        factory: [ "@api.operation_factory", "createItemOperation" ]
+        arguments:
+            -    "@resource.user"                    # Resource
+            -    [ "GET" ]                           # Methods
+            -    "/user/verif"                      # Path
+            -    'AppBundle:User:verif'             # Controller
+            -    "custom_search"                     # Route name
+            -    # Context (will be present in Hydra documentation)
+                 "@type":       "hydra:Operation"
+                 "hydra:title": " "
+                 "returns":     "xmls:string"
+                 
+                 
+
